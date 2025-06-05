@@ -21,11 +21,15 @@ target_link_libraries( ll::boost INTERFACE
   boost_fiber${sfx}
   boost_filesystem${sfx}
   boost_program_options${sfx}
-  boost_regex${sfx}
   boost_system${sfx}
   boost_thread${sfx}
   boost_url${sfx}
   )
+if (WINDOWS)
+  target_link_libraries( ll::boost INTERFACE boost_json${sfx})
+else ()
+  target_link_libraries( ll::boost INTERFACE boost_regex${sfx})
+endif ()
 target_compile_definitions( ll::boost INTERFACE BOOST_BIND_GLOBAL_PLACEHOLDERS )
 return()
 

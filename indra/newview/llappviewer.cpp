@@ -131,10 +131,12 @@
 #include "stringize.h"
 #include "llcoros.h"
 #include "llexception.h"
+#if !LL_WINDOWS
 #if LL_DARWIN || LL_LINUX || __FreeBSD__
 #include "cef/dullahan_version.h"
-#endif
+#endif // LL_DARWIN || LL_LINUX || __FreeBSD__
 #include "vlc/libvlc_version.h"
+#endif // !LL_WINDOWS
 
 #if LL_DARWIN
 #if LL_SDL
@@ -1559,7 +1561,15 @@ bool LLAppViewer::doFrame()
 
             if(fpsLimitSleepFor)
             {
+#if LL_WINDOWS
+                U64 time1 = 0, time2 = 0;
+                QueryPerformanceCounter((LARGE_INTEGER *)&time1);
+                do {
+                    QueryPerformanceCounter((LARGE_INTEGER *)&time2);
+                } while ((time2-time1) < fpsLimitSleepFor);
+#else
                 usleep(fpsLimitSleepFor);
+#endif
             }
 
             // yield some time to the os based on command line option
@@ -3468,7 +3478,7 @@ LLSD LLAppViewer::getViewerInfo() const
     info["LIBCEF_VERSION"] = "Undefined";
 #endif
 
-//#if !LL_LINUX
+#if !LL_WINDOWS
     std::ostringstream vlc_ver_codec;
     vlc_ver_codec << LIBVLC_VERSION_MAJOR;
     vlc_ver_codec << ".";
@@ -3476,11 +3486,9 @@ LLSD LLAppViewer::getViewerInfo() const
     vlc_ver_codec << ".";
     vlc_ver_codec << LIBVLC_VERSION_REVISION;
     info["LIBVLC_VERSION"] = vlc_ver_codec.str();
-/*
 #else
     info["LIBVLC_VERSION"] = "Undefined";
 #endif
-*/
 
     S32 packets_in = (S32)LLViewerStats::instance().getRecording().getSum(LLStatViewer::PACKETS_IN);
     if (packets_in > 0)
